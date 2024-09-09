@@ -1,0 +1,38 @@
+field elem: Int
+field next: Ref
+
+predicate list(x: Ref) {
+  (x != null) ==> (
+    acc(x.elem) &&
+    acc(x.next) &&
+    list(x.next)
+  )
+}
+
+function content(x: Ref): Seq[Int]
+  requires list(x)
+{
+  (x == null) ? (
+    Seq[Int]()
+  ) : (
+    unfolding list(x) in
+    Seq(x.elem) ++ content(x.next)
+  )
+}
+
+method llen(x: Ref) returns (res: Int)
+    requires list(x)
+    ensures list(x)
+    ensures res == |content(x)|
+{
+  var t: Int;
+
+  if (x == null) {
+    res := 1;
+  } else {
+    unfold list(x);
+    t := llen(x.next);
+    res := 1 + t;
+    fold list(x);
+  }
+}
